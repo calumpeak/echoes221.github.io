@@ -1,7 +1,3 @@
-//TODO All of the things
-//TODO Fix Score Listing (order them)
-
-
 //Intialise
 (function init() {
 	window.addEventListener("message", handleMessage.bind(game), false);
@@ -90,6 +86,7 @@ game.timer = function() {
 	this.countdown = setInterval(function() {
 		if(this.secs === 0) {
 			clearInterval(this.countdown);
+			this.flashMessage('OUT OF TIME!! GAME OVER!!', 5000);
 			signalEvent("storeScore");
 		} else {
 			this.secs-- ;
@@ -134,7 +131,7 @@ game.clickHandler = function(event) {
 		this.timer();
 	} else {
 		clearInterval(this.countdown);
-		this.flashMessage("GAME OVER!!");
+		this.flashMessage("NOT THE BUTTON!! GAME OVER!!", 5000);
 		signalEvent("storeScore");
 	}
 }
@@ -148,7 +145,7 @@ game.levelUp = function() {
 	if (this.score % 5 == 0) {
 		this.rows ++;
 		this.cols ++;
-		this.flashMessage("Level Up!!");
+		this.flashMessage("Level Up!!", 1000);
 	}
 	//recall grid
 	util.removeEl("#grid");
@@ -176,14 +173,18 @@ game.getRandomCell = function() {
 	return randCell;
 }
 
-game.flashMessage = function (mssg) {
+game.flashMessage = function (mssg, time) {
 	var p = util.createEl("p");
+
 	p.innerHTML = mssg;
 	p.style.opacity = 0;
+	//Build El
 	util.buildEl(this.wrapper, p);
 	//Fade in *pause* fade out
 	util.fade(p, 0, function () {
-		setTimeout(util.fade(p, 1), 1500);
+		var delay = window.setTimeout(function () {
+			util.fade(p, 1);
+		}, time);
 	});
 }
 
@@ -201,10 +202,10 @@ game.over = function() {
 			? " point!"
 			: " points!");
 	//Elements
-	var frame   = util.createEl("div"),
-		button  = util.createEl("div"),
-		message = util.createEl("p"),
-		score   = util.createEl("ul");
+	var frame   = util.createEl("div");
+	var button  = util.createEl("div");
+	var message = util.createEl("p");
+	var score   = util.createEl("ul");
 	//ID"s
 	frame.className = "frame";
 	button.className = "button";
@@ -214,6 +215,11 @@ game.over = function() {
 	//Content
 	button.innerHTML  = "Try Again!";
 	message.innerHTML = messageText;
+
+	//Sort scoreArr into descending list
+	this.scoreArr.sort(function (a, b) {
+		return a.score - b.score;
+	}).reverse();
 
 	//Build list items
 	for (var i = 0; i < this.scoreArr.length; i++) {
